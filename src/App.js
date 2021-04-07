@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 
 const api_key = '931ebe5bc66f93e3c0cc03d5bf530109'
@@ -10,32 +10,40 @@ function App() {
 
   // sync query/search bar value to empty after searching
 
-  const [city, setCity] = useState('')
+  const [city, setCity] = useState('Macao')
   const [weather, setWeather] = useState({})
   const [warm, setWarm] = useState(false)
+  const [haveData, setHaveData] = useState(false)
+
+  useEffect(() => {
+    fetchWeather()
+  }, [])
 
   const fetchWeather = async () => {
     try {
       const res = await axios.get(`${api_url}${city}&appid=${api_key}&units=metric`)
       const result = await res.data
       setWeather(result)
+      setCity('')
       if(typeof result.main !== "undefined") {
+        setHaveData(true)
         if(result.main.temp > 18) {
           setWarm(true)
         } else {
           setWarm(false)
         }
+      } else {
+        setHaveData(false)
       }
       console.log(weather)      
     } catch (error) {
+      setCity('')
     }
   }
 
   const searchCity = (e) => {
     if(e.key === "Enter" && city !== '') {
-      console.log("searching")
       fetchWeather()
-      setCity('')
     } 
   }
 
@@ -60,7 +68,7 @@ function App() {
             />
           </div>
         </div>
-        { weather && (
+        { haveData ? (
           <div className="weather-container">
             <div className="location">
               {weather.name}, {weather.sys.country}
@@ -74,7 +82,7 @@ function App() {
             <div className="weather">
               {weather.weather[0].main}
             </div>
-          </div>)
+          </div>) : ''
         }
       </main>
     </div>
